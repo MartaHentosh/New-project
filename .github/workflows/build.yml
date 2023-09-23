@@ -1,0 +1,43 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ECR_REPO_NAME }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install docker.io
+          sudo systemctl start docker
+          sudo systemctl enable docker
+
+      - name: Log in to Amazon ECR
+        run: |
+          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+          aws configure set default.region eu-central-1  # Замініть регіон на потрібний
+
+          aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.eu-central-1.amazonaws.com
+
+      - name: Build and Push Docker Image
+        run: |
+          AWS_ECR_REPO_NAME=app-telegram-bot
+          APP_VERSION=$(grep -m 1 version pyproject.toml | grep -e '\d.\d.\d' -o)
+
+          IMAGE_NAME=$AWS_ACCOUNT_ID.dkr.ecr.eu-central-1.amazonaws.com/$AWS_ECR_REPO_NAME:$APP_VERSION
+
+          echo Building $IMAGE_NAME...
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
