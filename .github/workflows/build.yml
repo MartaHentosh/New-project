@@ -23,6 +23,12 @@ jobs:
           sudo systemctl start docker
           sudo systemctl enable docker
 
+      - name: Configure AWS Credentials
+        uses: fuller-inc/actions-aws-assume-role@v1
+        with:
+          aws-region: eu-central-1
+          role-to-assume: arn:aws:iam::125704090157:role/GithubActionsServiceRole-eu-central-1
+          
       - name: Log in to Amazon ECR
         run: |
           aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
@@ -42,8 +48,4 @@ jobs:
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
       
-      - name: Configure AWS Credentials
-        uses: fuller-inc/actions-aws-assume-role@v1
-        with:
-          aws-region: eu-central-1
-          role-to-assume: arn:aws:iam::125704090157:role/GithubActionsServiceRole-eu-central-1
+
