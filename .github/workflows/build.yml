@@ -29,7 +29,7 @@ jobs:
           aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
           aws configure set default.region eu-central-1  # Замініть регіон на потрібний
 
-          aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.eu-central-1.amazonaws.com
+          aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.eu-centrgal-1.amazonaws.com
 
       - name: Build and Push Docker Image
         run: |
@@ -41,3 +41,9 @@ jobs:
           echo Building $IMAGE_NAME...
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
+      
+      - name: Configure AWS Credentials
+        uses: fuller-inc/actions-aws-assume-role@v1
+        with:
+          aws-region: eu-central-1
+          role-to-assume: arn:aws:iam::125704090157:role/GithubActionsServiceRole-eu-central-1
